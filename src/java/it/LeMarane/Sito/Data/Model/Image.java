@@ -14,7 +14,7 @@ public interface Image {
     
     String getDescription();
     
-    void setDescription();
+    void setDescription(String description);
     
     String getName();
     

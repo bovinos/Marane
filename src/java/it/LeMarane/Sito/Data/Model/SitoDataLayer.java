@@ -28,9 +28,9 @@ public interface SitoDataLayer {
     
     Admin getAdmin(String username, String password);
     
-    List<Admin> getAdmin();
+    List<Admin> getAdmins();
     
-    Post getPost(String titolo);
+    List<Post> getPosts(String titolo);
     
     Post getPost(int ID);
     

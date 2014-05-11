@@ -1,6 +1,7 @@
 package it.LeMarane.Sito.Data.Model;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  *
@@ -25,5 +26,26 @@ public interface Post {
     boolean isDirty();
 
     void setDirty(boolean dirty);
-
+    
+    /*====================
+     RELAZIONI
+     =====================*/
+    
+    Admin getAuthor();
+    
+    void setAuthor(Admin author);
+    
+    List<Image> getImages();
+    
+    void setImages(List<Image> images);
+    
+    void addImage(Image image);
+    
+    void removeLastImage();
+    
+    void removeFirstImage();
+    
+    Image getImage(int position_image);
+    
+    void removeImage(int position_image);
 }

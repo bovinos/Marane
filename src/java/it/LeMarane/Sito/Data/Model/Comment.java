@@ -25,5 +25,19 @@ public interface Comment {
     boolean isDirty();
 
     void setDirty(boolean dirty);
+    
+    /*====================
+            RELAZIONI
+     =====================*/
+    
+    Admin getAdmin();
+    
+    void setAdmin(Admin admin);
+    
+    boolean isPostedByAdmin();
+    
+    Post getPost();
+    
+    void setPost(Post post);
 
 }

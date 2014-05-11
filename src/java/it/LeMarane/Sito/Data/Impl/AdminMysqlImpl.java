@@ -13,17 +13,19 @@ public class AdminMysqlImpl implements Admin {
     private int ID;
     private String username;
     private String password;
+    protected SitoDataLayerMysqlImpl dataLayer; // per le query 
     protected boolean dirty;
 
-    public AdminMysqlImpl() {
+    public AdminMysqlImpl(SitoDataLayerMysqlImpl dataLayer) {
+        this.dataLayer = dataLayer;
         this.ID = 0;
         this.username = "";
         this.password = "";
         this.dirty = false;
     }
 
-    public AdminMysqlImpl(ResultSet rs) throws SQLException {
-        this();
+    public AdminMysqlImpl(SitoDataLayerMysqlImpl dataLayer, ResultSet rs) throws SQLException {
+        this(dataLayer);
         this.ID = rs.getInt("ID");
         this.username = rs.getString("username");
         this.password = rs.getString("password");
