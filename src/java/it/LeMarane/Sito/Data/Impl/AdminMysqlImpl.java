@@ -13,7 +13,7 @@ public class AdminMysqlImpl implements Admin {
     private int ID;
     private String username;
     private String password;
-    protected SitoDataLayerMysqlImpl dataLayer; // per le query 
+    protected SitoDataLayerMysqlImpl dataLayer; // per le query
     protected boolean dirty;
 
     public AdminMysqlImpl(SitoDataLayerMysqlImpl dataLayer) {
@@ -66,7 +66,6 @@ public class AdminMysqlImpl implements Admin {
     @Override
     public void setDirty(boolean dirty) {
         this.dirty = dirty;
-        
     }
 
 }

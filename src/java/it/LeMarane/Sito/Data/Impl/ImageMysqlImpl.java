@@ -15,7 +15,7 @@ public class ImageMysqlImpl implements Image {
     private String description;
     private String name;
     private boolean banner;
-    protected SitoDataLayerMysqlImpl dataLayer;     
+    protected SitoDataLayerMysqlImpl dataLayer;
     protected boolean dirty;
 
     public ImageMysqlImpl(SitoDataLayerMysqlImpl dataLayer) {
@@ -94,6 +94,16 @@ public class ImageMysqlImpl implements Image {
     @Override
     public void setDirty(boolean dirty) {
         this.dirty = dirty;
+    }
+
+    @Override
+    public void copyFrom(Image image) {
+        this.ID = image.getID();
+        this.URL = image.getURL();
+        this.description = image.getDescription();
+        this.name = image.getName();
+        this.banner = image.isBanner();
+        this.dirty = true;
     }
 
 }

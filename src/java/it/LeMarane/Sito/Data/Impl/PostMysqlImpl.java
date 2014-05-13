@@ -18,7 +18,7 @@ public class PostMysqlImpl implements Post {
     private String title;
     private String text;
     private Date date;
-    protected SitoDataLayerMysqlImpl dataLayer; // per le query 
+    protected SitoDataLayerMysqlImpl dataLayer; // per le query
     protected boolean dirty;
 
     private Admin author;                  // relazione
@@ -91,6 +91,17 @@ public class PostMysqlImpl implements Post {
         this.dirty = dirty;
     }
 
+    @Override
+    public void copyFrom(Post post) {
+        this.ID = post.getID();
+        this.date = post.getDate();
+        this.text = post.getText();
+        this.title = post.getTitle();
+        this.author = null;
+        this.images = null;
+        this.dirty = true;
+    }
+
     /*====================
      RELAZIONI
      =====================*/
@@ -144,16 +155,4 @@ public class PostMysqlImpl implements Post {
         this.images.remove(position_image);
         this.dirty = true;
     }
-
-    @Override
-    public void copyFrom(Post post) {
-        this.ID = post.getID();
-        this.date = post.getDate();
-        this.text = post.getText();
-        this.title = post.getTitle();
-        this.author = null;
-        this.images = null;
-        this.dirty = true;
-    }
-
 }

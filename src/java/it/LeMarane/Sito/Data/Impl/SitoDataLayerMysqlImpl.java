@@ -7,7 +7,6 @@ import it.LeMarane.Sito.Data.Model.Post;
 import it.LeMarane.Sito.Data.Model.SitoDataLayer;
 import it.univaq.f4i.iw.framework.data.DataLayerException;
 import it.univaq.f4i.iw.framework.data.DataLayerMysqlImpl;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -46,13 +45,14 @@ public class SitoDataLayerMysqlImpl extends DataLayerMysqlImpl implements SitoDa
         super(datasource);
     }
 
+    @Override
     public void init() throws DataLayerException {
         try {
             // Per aprire la connessione
             super.init();
             // Precompiliamo tutte le query utilizzate nella classe
             this.sAdminByID = connection.prepareStatement("SELECT * FROM admin WHERE ID=?");
-            this.sAdminByUsernameAndPassword = connection.prepareStatement("SELECT ID FROM admin WHERE username=? AND password=?");
+            this.sAdminByUsernameAndPassword = connection.prepareStatement("SELECT * FROM admin WHERE username=? AND password=?");
             this.sAdmins = connection.prepareStatement("SELECT ID FROM admin");
             this.sPostbyID = connection.prepareStatement("SELECT * FROM post WHERE ID=?");
             this.sPostbyTitle = connection.prepareStatement("SELECT ID FROM post WHERE title=?");
@@ -113,7 +113,6 @@ public class SitoDataLayerMysqlImpl extends DataLayerMysqlImpl implements SitoDa
 
     @Override
     public void editPost(Post edited_post) {
-
         try {
             // se non è stato modificato nulla allora non fare nulla
             if (!edited_post.isDirty()) {
@@ -189,7 +188,7 @@ public class SitoDataLayerMysqlImpl extends DataLayerMysqlImpl implements SitoDa
         ResultSet rs = null;
         Admin result = null;
         try {
-            // this.sAdminByUsernameAndPassword = connection.prepareStatement("SELECT ID FROM admin WHERE username=? AND password=?");
+            // this.sAdminByUsernameAndPassword = connection.prepareStatement("SELECT * FROM admin WHERE username=? AND password=?");
             sAdminByUsernameAndPassword.setString(1, username);
             sAdminByUsernameAndPassword.setString(2, password);
             rs = sAdminByID.executeQuery();
@@ -421,7 +420,7 @@ public class SitoDataLayerMysqlImpl extends DataLayerMysqlImpl implements SitoDa
                 iPost.setDate(3, new java.sql.Date(System.currentTimeMillis() / 1000L));
                 iPost.setInt(4, post.getAuthor().getID());
                 if (iPost.executeUpdate() == 1) { // allora ha inserito 1 riga
-                    rs = iPost.getGeneratedKeys(); // per ottenere le chiavi generate automaticamente 
+                    rs = iPost.getGeneratedKeys(); // per ottenere le chiavi generate automaticamente
                     // che hanno l'auto increment
                     // restituisce un ResultSet contenente
                     // tutte le chiavi generate
@@ -429,17 +428,19 @@ public class SitoDataLayerMysqlImpl extends DataLayerMysqlImpl implements SitoDa
                         ID = rs.getInt(1);
                     }
                 }
-                if(ID > 0){ // ho eseguito il blocco di codice ID = rs.getInt(1);
+                if (ID > 0) { // ho eseguito il blocco di codice ID = rs.getInt(1);
                     post.copyFrom(getPost(ID)); // aggiorna il post a quello appena salvato
                 }
                 post.setDirty(false); // considera il post pulito
             } catch (SQLException ex) {
                 Logger.getLogger(SitoDataLayerMysqlImpl.class.getName()).log(Level.SEVERE, null, ex);
-            } finally{
-                if(rs != null) try {
-                    rs.close();
-                } catch (SQLException ex) {
-                    Logger.getLogger(SitoDataLayerMysqlImpl.class.getName()).log(Level.SEVERE, null, ex);
+            } finally {
+                if (rs != null) {
+                    try {
+                        rs.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(SitoDataLayerMysqlImpl.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             }
         }
@@ -447,12 +448,87 @@ public class SitoDataLayerMysqlImpl extends DataLayerMysqlImpl implements SitoDa
 
     @Override
     public void storeComment(Comment comment) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        ResultSet rs = null;
+        int ID = comment.getID();
+        if (ID > 0) { // update
+            editComment(comment);
+        } else { // insert
+            try {
+                // this.iComment = connection.prepareStatement("INSERT INTO comment (author, text, date, adminID, postID), VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+                // assumiamo che se un commento è postato da un Admin, Comment.author corrisponderà a Admin.Username
+                this.iComment.setString(1, comment.getAuthor());
+                this.iComment.setString(2, comment.getText());
+                this.iComment.setDate(3, new java.sql.Date(System.currentTimeMillis() / 1000L));
+                this.iComment.setInt(5, comment.getPost().getID());
+                if (comment.isPostedByAdmin()) {
+                    this.iComment.setInt(4, comment.getAdmin().getID());
+                } else {
+                    this.iComment.setNull(4, java.sql.Types.INTEGER);
+                }
+                // abbiamo finito di compilare la query
+                if (this.iComment.executeUpdate() == 1) {
+                    rs = this.iComment.getGeneratedKeys();
+                    if (rs.next()) {
+                        ID = rs.getInt(1);
+                    }
+                }
+                if (ID > 0) {
+                    comment.copyFrom(getComment(ID)); // aggiorno il post
+                }
+                comment.setDirty(false); // dico che è pulito
+            } catch (SQLException ex) {
+                Logger.getLogger(SitoDataLayerMysqlImpl.class.getName()).log(Level.SEVERE, null, ex);
+            } finally {
+                if (rs != null) {
+                    try {
+                        rs.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(SitoDataLayerMysqlImpl.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        }
     }
 
     @Override
     public void storeImage(Image image) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        ResultSet rs = null;
+        int ID = image.getID();
+        if (ID > 0) { // update
+            ///////////////////////////////////////////////////////////////
+            // l'immagine già esiste ma non abbiamo dato la possibilità di editarla
+            // le immagini si possono solo aggiungere e togliere
+            //////////////////////////////////////////////////////////////
+        } else { // insert
+            try {
+                // this.iImage = connection.prepareStatement("INSERT INTO image (URL, description, name, banner)", Statement.RETURN_GENERATED_KEYS);
+                this.iImage.setString(1, image.getURL());
+                this.iImage.setString(2, image.getDescription());
+                this.iImage.setString(3, image.getName());
+                this.iImage.setBoolean(4, image.isBanner());
+                // abbiamo finito di compilare la query
+                if (this.iImage.executeUpdate() == 1) {
+                    rs = this.iImage.getGeneratedKeys();
+                    if (rs.next()) {
+                        ID = rs.getInt(1);
+                    }
+                }
+                if (ID > 0) {
+                    image.copyFrom(getImage(ID)); // aggiorno il post
+                }
+                image.setDirty(false); // dico che è pulito
+            } catch (SQLException ex) {
+                Logger.getLogger(SitoDataLayerMysqlImpl.class.getName()).log(Level.SEVERE, null, ex);
+            } finally {
+                if (rs != null) {
+                    try {
+                        rs.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(SitoDataLayerMysqlImpl.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        }
     }
 
     @Override

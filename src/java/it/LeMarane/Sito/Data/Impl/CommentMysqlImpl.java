@@ -90,6 +90,17 @@ public class CommentMysqlImpl implements Comment {
         this.dirty = dirty;
     }
 
+    @Override
+    public void copyFrom(Comment comment) {
+        this.ID = comment.getID();
+        this.author = comment.getAuthor();
+        this.date = comment.getDate();
+        this.text = comment.getText();
+        this.admin = null;
+        this.post = null;
+        this.dirty = true;
+    }
+
     /*====================
      RELAZIONI
      =====================*/
@@ -119,5 +130,4 @@ public class CommentMysqlImpl implements Comment {
         this.post = post;
         this.dirty = true;
     }
-
 }
