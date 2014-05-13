@@ -30,6 +30,7 @@ public class SitoDataLayerMysqlImpl extends DataLayerMysqlImpl implements SitoDa
     private PreparedStatement sPostbyID, sPostbyTitle, sPosts;
     private PreparedStatement sCommentbyID, sComments;
     private PreparedStatement sImagebyID, sImages;
+    private PreparedStatement sPost_ImageByPostID, sPost_ImageByImageID;
 
     // PreparedStatemente per le INSERT (corrispondono alle store di SitoDataLayer.java)
     private PreparedStatement iPost, iComment, iImage;
@@ -60,6 +61,8 @@ public class SitoDataLayerMysqlImpl extends DataLayerMysqlImpl implements SitoDa
             this.sComments = connection.prepareStatement("SELECT ID FROM comment");
             this.sImagebyID = connection.prepareStatement("SELECT * FROM image WHERE ID=?");
             this.sImages = connection.prepareStatement("SELECT ID FROM image");
+            this.sPost_ImageByPostID = connection.prepareStatement("SELECT imageID FROM post_image WHERE postID=?");
+            this.sPost_ImageByImageID = connection.prepareStatement("SELECT postID FROM post_image WHERE imageID=?");
 
             //notare l'ultimo paametro extra di questa chiamata a
             //prepareStatement: lo usiamo per assicurarci che il JDBC
@@ -220,7 +223,6 @@ public class SitoDataLayerMysqlImpl extends DataLayerMysqlImpl implements SitoDa
         } catch (SQLException ex) {
             Logger.getLogger(SitoDataLayerMysqlImpl.class.getName()).log(Level.SEVERE, null, ex);
         } finally {
-
             if (rs != null) {
                 try {
                     rs.close();
@@ -408,20 +410,37 @@ public class SitoDataLayerMysqlImpl extends DataLayerMysqlImpl implements SitoDa
     public void storePost(Post post) {
         ResultSet rs = null;
         int ID = post.getID();
-        if( ID > 0){ // post esiste già nel DB => faccio l'update
+        if (ID > 0) { // post esiste già nel DB => faccio l'update
             editPost(post);
-        }
-        else{ // post non esiste nel DB => faccio l'insert
+        } else { // post non esiste nel DB => faccio l'insert
             try {
-            // this.iPost = connection.prepareStatement("INSERT INTO post (title, text, date, adminID) VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
-            iPost.setString(1, post.getTitle());
-            iPost.setString(2, post.getText());
-            // System.currentTimeMillis() / 1000L <= per ottenere il TIMESTAMP corrente
-            iPost.setDate(3, new java.sql.Date(System.currentTimeMillis() / 1000L));
-            iPost.setInt(4, post.getAuthor().getID());
-            iPost.e
+                // this.iPost = connection.prepareStatement("INSERT INTO post (title, text, date, adminID) VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+                iPost.setString(1, post.getTitle());
+                iPost.setString(2, post.getText());
+                // System.currentTimeMillis() / 1000L <= per ottenere il TIMESTAMP corrente
+                iPost.setDate(3, new java.sql.Date(System.currentTimeMillis() / 1000L));
+                iPost.setInt(4, post.getAuthor().getID());
+                if (iPost.executeUpdate() == 1) { // allora ha inserito 1 riga
+                    rs = iPost.getGeneratedKeys(); // per ottenere le chiavi generate automaticamente 
+                    // che hanno l'auto increment
+                    // restituisce un ResultSet contenente
+                    // tutte le chiavi generate
+                    if (rs.next()) { // se ha restituito la chiave
+                        ID = rs.getInt(1);
+                    }
+                }
+                if(ID > 0){ // ho eseguito il blocco di codice ID = rs.getInt(1);
+                    post.copyFrom(getPost(ID)); // aggiorna il post a quello appena salvato
+                }
+                post.setDirty(false); // considera il post pulito
             } catch (SQLException ex) {
                 Logger.getLogger(SitoDataLayerMysqlImpl.class.getName()).log(Level.SEVERE, null, ex);
+            } finally{
+                if(rs != null) try {
+                    rs.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(SitoDataLayerMysqlImpl.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
         }
     }
@@ -434,6 +453,66 @@ public class SitoDataLayerMysqlImpl extends DataLayerMysqlImpl implements SitoDa
     @Override
     public void storeImage(Image image) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public List<Post> getPosts(int imageID) {
+        ResultSet rs = null;
+        List<Post> result = new ArrayList();
+        try {
+            // this.sPost_ImageByImageID = connection.prepareStatement("SELECT postID FROM post_image WHERE imageID=?");
+            this.sPost_ImageByImageID.setInt(1, imageID);
+            rs = this.sPost_ImageByImageID.executeQuery();
+            while (rs.next()) {
+                result.add(getPost(rs.getInt("postID")));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(SitoDataLayerMysqlImpl.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(SitoDataLayerMysqlImpl.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public List<Post> getPosts(Image image) {
+        return getPosts(image.getID());
+    }
+
+    @Override
+    public List<Image> getImages(int postID) {
+        ResultSet rs = null;
+        List<Image> result = new ArrayList();
+        try {
+            // this.sPost_ImageByPostID = connection.prepareStatement("SELECT imageID FROM post_image WHERE postID=?");
+            this.sPost_ImageByPostID.setInt(1, postID);
+            rs = this.sPost_ImageByPostID.executeQuery();
+            while (rs.next()) {
+                result.add(getImage(rs.getInt("imageID")));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(SitoDataLayerMysqlImpl.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            if (rs != null) {
+                try {
+                    rs.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(SitoDataLayerMysqlImpl.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public List<Image> getImages(Post post) {
+        return getImages(post.getID());
     }
 
 }

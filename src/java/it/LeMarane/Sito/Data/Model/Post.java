@@ -27,6 +27,8 @@ public interface Post {
 
     void setDirty(boolean dirty);
     
+    void copyFrom(Post post);
+    
     /*====================
      RELAZIONI
      =====================*/

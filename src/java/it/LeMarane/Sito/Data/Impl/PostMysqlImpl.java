@@ -1,7 +1,6 @@
 package it.LeMarane.Sito.Data.Impl;
 
 import it.LeMarane.Sito.Data.Model.Admin;
-import it.LeMarane.Sito.Data.Model.Comment;
 import it.LeMarane.Sito.Data.Model.Image;
 import it.LeMarane.Sito.Data.Model.Post;
 import java.sql.ResultSet;
@@ -143,6 +142,17 @@ public class PostMysqlImpl implements Post {
     @Override
     public void removeImage(int position_image) {
         this.images.remove(position_image);
+        this.dirty = true;
+    }
+
+    @Override
+    public void copyFrom(Post post) {
+        this.ID = post.getID();
+        this.date = post.getDate();
+        this.text = post.getText();
+        this.title = post.getTitle();
+        this.author = null;
+        this.images = null;
         this.dirty = true;
     }
 

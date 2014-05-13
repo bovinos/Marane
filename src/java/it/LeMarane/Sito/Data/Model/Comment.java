@@ -26,6 +26,8 @@ public interface Comment {
 
     void setDirty(boolean dirty);
     
+    void copyFrom(Comment comment);
+    
     /*====================
             RELAZIONI
      =====================*/

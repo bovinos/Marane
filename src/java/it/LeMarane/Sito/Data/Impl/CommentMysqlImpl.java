@@ -17,7 +17,7 @@ public class CommentMysqlImpl implements Comment {
     private String author;
     private String text;
     private Date date;
-    protected SitoDataLayerMysqlImpl dataLayer; // per le query 
+    protected SitoDataLayerMysqlImpl dataLayer; // per le query
     protected boolean dirty;
 
     private Admin admin; // relazione
