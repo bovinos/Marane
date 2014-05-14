@@ -75,6 +75,10 @@ public class SitoDataLayerMysqlImpl extends DataLayerMysqlImpl implements SitoDa
             this.ePost = connection.prepareStatement("UPDATE post SET title=?, text=?, date=?, adminID=? WHERE ID=?");
             this.eComment = connection.prepareStatement("UPDATE comment SET author=?, text=?, date=?, adminID=?, postID=? WHERE ID=?");
 
+            this.dPost = connection.prepareStatement("DELETE FROM post WHERE ID=?");
+            this.dComment = connection.prepareStatement("DELETE FROM comment WHERE ID=?");
+            this.dImage = connection.prepareStatement("DELETE FROM image WHERE ID=?");
+
         } catch (SQLException ex) {
             Logger.getLogger(SitoDataLayerMysqlImpl.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -98,17 +102,35 @@ public class SitoDataLayerMysqlImpl extends DataLayerMysqlImpl implements SitoDa
 
     @Override
     public void deletePost(int ID) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        try {
+            // this.dPost = connection.prepareStatement("DELETE FROM post WHERE ID=?");
+            this.dPost.setInt(1, ID);
+            this.dPost.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(SitoDataLayerMysqlImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
     public void deleteComment(int ID) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        try {
+            // this.dComment = connection.prepareStatement("DELETE FROM comment WHERE ID=?");
+            this.dComment.setInt(1, ID);
+            this.dComment.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(SitoDataLayerMysqlImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
     public void deleteImage(int ID) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        try {
+            // this.dImage = connection.prepareStatement("DELETE FROM image WHERE ID=?");
+            this.dImage.setInt(1, ID);
+            this.dImage.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(SitoDataLayerMysqlImpl.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override
