@@ -20,8 +20,10 @@ public class CommentMysqlImpl implements Comment {
     protected SitoDataLayerMysqlImpl dataLayer; // per le query
     protected boolean dirty;
 
-    private Admin admin; // relazione
-    private Post post;      // relazione
+    private Admin admin;  // relazione
+    private int adminID;    // chiave esterna
+    private Post post;       // relazione
+    private int postID;      // chiave esterna
 
     public CommentMysqlImpl(SitoDataLayerMysqlImpl dataLayer) {
         this.dataLayer = dataLayer;
@@ -31,7 +33,9 @@ public class CommentMysqlImpl implements Comment {
         this.date = null;
         this.dirty = false;
         this.admin = null;
+        this.adminID = 0;
         this.post = null;
+        this.postID = 0;
     }
 
     public CommentMysqlImpl(SitoDataLayerMysqlImpl dataLayer, ResultSet rs) throws SQLException {
@@ -40,6 +44,8 @@ public class CommentMysqlImpl implements Comment {
         this.author = rs.getString("author");
         this.text = rs.getString("text");
         this.date = rs.getDate("date");
+        this.adminID = rs.getInt("adminID"); // e se è null?
+        this.postID = rs.getInt("postID");
     }
 
     @Override
@@ -97,7 +103,9 @@ public class CommentMysqlImpl implements Comment {
         this.date = comment.getDate();
         this.text = comment.getText();
         this.admin = null;
+        this.adminID = comment.getAdmin().getID();
         this.post = null;
+        this.postID = comment.getPost().getID();
         this.dirty = true;
     }
 
@@ -106,12 +114,18 @@ public class CommentMysqlImpl implements Comment {
      =====================*/
     @Override
     public Admin getAdmin() {
+
+        if (this.admin == null && this.adminID > 0) {
+            this.admin = this.dataLayer.getAdmin(this.adminID);
+        }
+
         return this.admin;
     }
 
     @Override
     public void setAdmin(Admin admin) {
         this.admin = admin;
+        this.adminID = admin.getID();
         this.dirty = true;
     }
 
@@ -122,12 +136,18 @@ public class CommentMysqlImpl implements Comment {
 
     @Override
     public Post getPost() {
+
+        if (this.postID != 0) {
+            this.post = this.dataLayer.getPost(this.postID);
+        }
+
         return this.post;
     }
 
     @Override
     public void setPost(Post post) {
         this.post = post;
+        this.postID = post.getID();
         this.dirty = true;
     }
 }

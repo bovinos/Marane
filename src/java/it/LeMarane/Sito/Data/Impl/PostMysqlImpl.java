@@ -22,6 +22,7 @@ public class PostMysqlImpl implements Post {
     protected boolean dirty;
 
     private Admin author;                  // relazione
+    private int authorID;                    // chiave esterna
     private List<Image> images;            // relazione
 
     public PostMysqlImpl(SitoDataLayerMysqlImpl dataLayer) {
@@ -32,6 +33,7 @@ public class PostMysqlImpl implements Post {
         this.date = null;
         this.dirty = false;
         this.author = null;
+        this.authorID = 0;
         this.images = null;
     }
 
@@ -41,6 +43,7 @@ public class PostMysqlImpl implements Post {
         this.title = rs.getString("title");
         this.text = rs.getString("text");
         this.date = rs.getDate("date");
+        this.authorID = rs.getInt("adminID");
     }
 
     @Override
@@ -98,6 +101,7 @@ public class PostMysqlImpl implements Post {
         this.text = post.getText();
         this.title = post.getTitle();
         this.author = null;
+        this.authorID = post.getAuthor().getID();
         this.images = null;
         this.dirty = true;
     }
@@ -107,17 +111,28 @@ public class PostMysqlImpl implements Post {
      =====================*/
     @Override
     public Admin getAuthor() {
+
+        if (author == null && authorID > 0) {
+            this.author = this.dataLayer.getAdmin(this.authorID);
+        }
+
         return author;
     }
 
     @Override
     public void setAuthor(Admin author) {
         this.author = author;
+        this.authorID = author.getID();
         this.dirty = true;
     }
 
     @Override
     public List<Image> getImages() {
+
+        if (this.images == null) {
+            this.images = this.dataLayer.getImages(this);
+        }
+
         return images;
     }
 
